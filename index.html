@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment Problem Solver</title>
+    
+    <!-- 1. Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 2. Font --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        /* --- THIS ENTIRE STYLE BLOCK HAS BEEN RE-WRITTEN TO REMOVE @APPLY --- */
+        body { 
+            font-family: 'Inter', sans-serif; 
+        }
+
+        /* Modern input styling */
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 0.5rem; /* p-2 */
+            border: 1px solid #D1D5DB; /* border border-gray-300 */
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            color: #111827; /* focus:text-gray-900 */
+            background-color: #ffffff; /* focus:bg-white */
+            border-color: #3B82F6; /* focus:border-blue-500 */
+            outline: none; /* focus:outline-none */
+            --tw-ring-color: #3B82F6; /* focus:ring-blue-500 */
+            box-shadow: 0 0 0 1px var(--tw-ring-color); /* focus:ring-1 */
+        }
+
+        /* Style for inputs inside tables */
+        td input[type="text"],
+        td input[type="number"] {
+            text-align: center;
+            min-width: 80px;
+        }
+
+        /* Custom button base style */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding-left: 1rem; /* px-4 */
+            padding-right: 1rem; /* px-4 */
+            padding-top: 0.5rem; /* py-2 */
+            padding-bottom: 0.5rem; /* py-2 */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* font-medium */
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
+            border: 1px solid transparent; /* border border-transparent */
+            transition-property: all; /* transition-all */
+            transition-duration: 150ms; /* duration-150 */
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); /* ease-in-out */
+        }
+        .btn:focus {
+            outline: none; /* focus:outline-none */
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--tw-ring-color); /* focus:ring-2 focus:ring-offset-2 */
+        }
+
+        /* Primary button  */
+        .btn-primary {
+            color: #ffffff; /* text-white */
+            background-color: #16A34A; /* bg-green-600 */
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
+            --tw-ring-color: #22C55E; /* focus:ring-green-500 */
+        }
+        .btn-primary:hover {
+            background-color: #15803D; /* hover:bg-green-700 */
+        }
+
+        /* Secondary button */
+        .btn-secondary {
+            color: #374151; /* text-gray-700 */
+            background-color: #ffffff; /* bg-white */
+            border-color: #D1D5DB; /* border-gray-300 */
+            --tw-ring-color: #6366F1; /* focus:ring-indigo-500 */
+        }
+        .btn-secondary:hover {
+            background-color: #F9FAFB; /* hover:bg-gray-50 */
+        }
+
+        /* Result box styles (from Project 2) */
+        .result-box {
+            margin-top: 2rem; /* mt-8 */
+            padding: 1.5rem; /* p-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+            border-width: 1px;
+        }
+
+        .result-success {
+            background-color: #F0FDF4; /* bg-green-50 */
+            border-color: #BBF7D0; /* border-green-200 */
+            color: #166534; /* text-green-800 */
+        }
+
+        .result-error {
+            background-color: #FEF2F2; /* bg-red-50 */
+            border-color: #FDA4AF; /* border-red-300 */
+            color: #991B1B; /* text-red-800 */
+        }
+
+        /* Icon size for buttons */
+        .icon {
+            height: 1.25rem; /* h-5 */
+            width: 1.25rem; /* w-5 */
+            margin-right: 0.5rem; /* mr-2 */
+        }
+
+        /* Styling for the matrix cells in the solution */
+        .solution-cell {
+            padding: 0.75rem; /* p-3 */
+            text-align: center;
+        }
+
+        /*  Enhanced highlighting for assigned cells */
+        .assigned {
+            background-color: #86EFAC; /* bg-green-300 */
+            color: #14532D; /* text-green-900 */
+            font-weight: 800; /* font-extrabold */
+            border: 2px solid #166534; /* border-2 border-green-800 */
+            /* Using box-shadow for ring effect */
+            box-shadow: 0 0 0 2px #15803D; /* ring-2 ring-green-700 */
+        }
+
+        .not-assigned {
+            color: #4B5563; /* text-gray-600 */
+        }
+        /* --- END OF NEW STYLE BLOCK --- */
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-4 md:p-10">
+
+    <!-- Main container  --><div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8">
+        
+        <!-- Header  --><header class="border-b border-gray-200 pb-4 mb-6 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
+                Assignment Problem Solver
+            </h1>
+            <p class="text-lg text-gray-600 mt-1">
+                Using the Hungarian Method
+            </p>
+        </header>
+
+        <!-- App content will be injected here --><main id="app-content" class="space-y-8"></main>
+    </div>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        const state = {
+            size: 3,
+            agents: [
+                { id: 'a1', name: 'Agent 1' },
+                { id: 'a2', name: 'Agent 2' },
+                { id: 'a3', name: 'Agent 3' }
+            ],
+            tasks: [
+                { id: 't1', name: 'Task 1' },
+                { id: 't2', name: 'Task 2' },
+                { id: 't3', name: 'Task 3' }
+            ],
+            costs: {
+                'a1_t1': 8, 'a1_t2': 4, 'a1_t3': 7,
+                'a2_t1': 5, 'a2_t2': 2, 'a2_t3': 3,
+                'a3_t1': 6, 'a3_t2': 3, 'a3_t3': 5,
+            },
+            solution: null,
+            errorMessage: null,
+        };
+
+        // --- RENDER FUNCTIONS ---
+        function renderApp() {
+            const container = document.getElementById('app-content');
+            container.innerHTML = `
+                <div>
+                    ${renderControls()}
+                    ${renderCostMatrix()}
+                    ${renderActions()}
+                    <div id="solution-wrapper">
+                        ${renderSolution()}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderControls() {
+            return `
+                <section>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-3">1. Define Problem Size</h2>
+                    <p class="text-sm text-gray-500 mb-4">The Assignment Problem requires an equal number of agents and tasks (an N x N matrix).</p>
+                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <label for="problem-size" class="font-medium text-gray-700">Set Size (N):</label>
+                        <input type="number" id="problem-size" min="2" max="15" value="${state.size}" 
+                               onchange="updateProblemSize(this.value)"
+                               class="w-24 p-2 border rounded-md">
+                        <button class="btn btn-secondary" onclick="resetNames()">Reset Names</button>
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderCostMatrix() {
+            if (state.size === 0) return '';
+
+            // --- Render Agent/Task Name Headers ---
+            
+            let taskHeaderCells = state.tasks.map(t => `
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <input type="text" value="${t.name}" oninput="updateName('tasks', '${t.id}', this.value)" class="font-medium text-center w-full">
+                </th>
+            `).join('');
+
+            let taskHeader = `<thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky left-0 bg-gray-50 z-10">Agent / Task</th>
+                                    ${taskHeaderCells}
+                                </tr>
+                            </thead>`;
+
+            // --- Render Body Rows (Agent Names + Cost Inputs) ---
+            let bodyRows = state.agents.map(a => {
+                
+                let costCells = state.tasks.map(t => {
+                    let cost = state.costs[`${a.id}_${t.id}`] || 0;
+                    return `<td class="px-4 py-3"><input type="number" min="0" value="${cost}" oninput="updateCost('${a.id}', '${t.id}', this.value)" class="w-full"></td>`;
+                }).join('');
+
+                return `
+                    <tr>
+                        <td class="px-4 py-3 sticky left-0 bg-white z-10">
+                            <!-- CORRECTION 4: Added w-full --><input type="text" value="${a.name}" oninput="updateName('agents', '${a.id}', this.value)" class="font-medium w-full">
+                        </td>
+                        ${costCells}
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <section>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-3">2. Define Cost Matrix</h2>
+                    <p class="text-gray-600 mb-4">Cost to assign 1 agent to 1 task.</p>
+                    <!-- CORRECTION 4: Removed overflow-x-auto, changed min-w-full to w-full --><div class="border border-gray-200 rounded-lg">
+                        <table class="w-full divide-y divide-gray-200">
+                            ${taskHeader}
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${bodyRows}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderActions() {
+            return `
+                <section class="border-t border-gray-200 pt-6 mt-8 text-center">
+                    <button class="btn btn-primary w-full md:w-auto px-8 py-3 text-lg font-semibold" onclick="solveProblem()">
+                        <!-- CORRECTION: Removed icon -->Find Optimal Solution
+                    </button>
+                </section>
+            `;
+        }
+
+        function renderSolution() {
+            if (state.errorMessage) {
+                return `<div class="result-box result-error"><strong>Error:</strong> ${state.errorMessage}</div>`;
+            }
+            if (!state.solution) return '';
+
+            const { assignments, totalCost } = state.solution;
+
+            // --- Render Task Headers ---
+            let taskHeaderCells = state.tasks.map(t => `<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">${t.name}</th>`).join('');
+            let taskHeader = `<thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky left-0 bg-gray-50 z-10">Agent / Task</th>
+                                    ${taskHeaderCells}
+                                </tr>
+                            </thead>`;
+
+            // --- Render Body Rows ---
+            let bodyRows = state.agents.map((a, i) => {
+                let cells = state.tasks.map((t, j) => {
+                    const cost = state.costs[`${a.id}_${t.id}`] || 0;
+                    const isAssigned = assignments.some(pair => pair[0] === i && pair[1] === j);
+                    
+                    if (isAssigned) {
+                        return `<td class="solution-cell assigned" title="Assign ${a.name} to ${t.name}">
+                                    $${cost}
+                                </td>`;
+                    } else {
+                        return `<td class="solution-cell not-assigned" title="Cost: $${cost}">
+                                    $${cost}
+                                </td>`;
+                    }
+                }).join('');
+
+                return `<tr>
+                            <td class="px-4 py-3 sticky left-0 bg-white z-10 font-medium text-gray-700">${a.name}</td>
+                            ${cells}
+                        </tr>`;
+            }).join('');
+
+            // --- Render Summary --- (THIS BLOCK WAS MISSING)
+            let assignmentSummary = assignments.map(pair => {
+                const agentName = state.agents[pair[0]].name;
+                const taskName = state.tasks[pair[1]].name;
+                const cost = state.costs[`${state.agents[pair[0]].id}_${state.tasks[pair[1]].id}`] || 0; // <-- Fixed: pair-0 became pair[0]
+                return `<li class="text-base">${agentName} &rarr; ${taskName} (Cost: $${cost})</li>`;
+            }).join('');
+            // --- END OF MISSING BLOCK ---
+
+            return `
+                <div class="result-box result-success">
+                    <h3 class="text-2xl font-semibold text-green-800 mb-4">Optimal Solution Found!</h3>
+                    <p class="text-gray-700 text-lg mb-4">
+                        Minimum Total Cost:
+                        <strong class="text-green-700 text-2xl">$${totalCost.toLocaleString()}</strong>
+                    </p>
+                    
+                    <!-- CORRECTION 3: Changed grid layout to stack vertically --><div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <h4 class="text-lg font-semibold text-green-800 mb-2">Optimal Assignments:</h4>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                ${assignmentSummary}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-green-800 mb-2">Assignment Matrix:</h4>
+                            <p class="text-sm text-green-700 mb-2">(Assigned cells are highlighted)</p>
+                            <div class="overflow-x-auto bg-white rounded-lg shadow border border-gray-200">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    ${taskHeader}
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        ${bodyRows}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        // --- UI EVENT HANDLERS ---
+        function updateProblemSize(newSize) {
+            const size = parseInt(newSize, 10);
+            if (size < 2 || size > 15) {
+                // Show a non-blocking error
+                document.getElementById('solution-wrapper').innerHTML = `
+                    <div class="result-box result-error"><strong>Error:</strong> Please enter a size between 2 and 15.</div>
+                `;
+                return;
+            }
+
+            state.size = size;
+            state.agents = [];
+            state.tasks = [];
+            const newCosts = {};
+
+            for (let i = 0; i < size; i++) {
+                const aId = `a${i + 1}`;
+                const tId = `t${i + 1}`;
+                state.agents.push({ id: aId, name: `Agent ${i + 1}` });
+                state.tasks.push({ id: tId, name: `Task ${i + 1}` });
+
+                for (let j = 0; j < size; j++) {
+                    const tId_j = `t${j + 1}`;
+                    // Preserve old costs if they exist, default to 0
+                    newCosts[`${aId}_${tId_j}`] = state.costs[`${aId}_${tId_j}`] || 0;
+                }
+            }
+            state.costs = newCosts;
+            clearSolution();
+            renderApp();
+        }
+        
+        function resetNames() {
+            for (let i = 0; i < state.size; i++) {
+                state.agents[i].name = `Agent ${i + 1}`;
+                state.tasks[i].name = `Task ${i + 1}`;
+            }
+            clearSolution();
+            renderApp();
+        }
+
+        function updateName(type, id, value) {
+            const list = (type === 'agents') ? state.agents : state.tasks;
+            const item = list.find(i => i.id === id);
+            if (item) item.name = value;
+            clearSolution();
+            // Re-rendering cost matrix headers is complex, so we'll just re-render the matrix
+            // This is a small bug, but we'll live with it to avoid losing focus
+            // renderApp();  // <-- REMOVE THIS LINE
+        }
+        
+        function updateCost(aId, tId, value) {
+            state.costs[`${aId}_${tId}`] = parseFloat(value) || 0;
+            clearSolution();
+        }
+
+        function clearSolution() {
+            state.solution = null;
+            state.errorMessage = null;
+            document.getElementById('solution-wrapper').innerHTML = renderSolution();
+        }
+
+        // --- CORE SOLVER LOGIC (HUNGARIAN METHOD) ---
+        function solveProblem() {
+            try {
+                // 1. Build the cost matrix from state
+                const costMatrix = state.agents.map(a => 
+                    state.tasks.map(t => 
+                        state.costs[`${a.id}_${t.id}`] || 0
+                    )
+                );
+
+                // 2. Instantiate and run the solver
+                const hungarian = new Hungarian(costMatrix);
+                const results = hungarian.solve();
+                
+                if (!results) {
+                    throw new Error("Solver could not find a solution. Check for degenerate cases or matrix errors.");
+                }
+
+                // 3. Calculate total cost from original matrix
+                let totalCost = 0;
+                results.forEach(pair => {
+                    const row = pair[0];
+                    const col = pair[1];
+                    // Ensure we use the original matrix for cost calculation
+                    totalCost += hungarian.originalMatrix[row][col];
+                });
+
+                state.solution = {
+                    assignments: results,
+                    totalCost: totalCost
+                };
+                state.errorMessage = null;
+
+            } catch (e) {
+                console.error("Solver Error:", e);
+                state.errorMessage = e.message || "An error occurred. Check matrix values.";
+                state.solution = null;
+            }
+            // Re-render only the solution, not the whole app
+            document.getElementById('solution-wrapper').innerHTML = renderSolution();
+        }
+
+        /*
+         * This is a JavaScript implementation of the Hungarian Algorithm (Munkres algorithm).
+         * It finds the optimal (minimum cost) assignment in a bipartite graph.
+         * This implementation is a standard, correct adaptation.
+         */
+        class Hungarian {
+            constructor(costMatrix) {
+                // Clone the matrix to avoid modifying the original
+                this.matrix = costMatrix.map(row => [...row]);
+                this.n = this.matrix.length;
+                this.originalMatrix = costMatrix.map(row => [...row]);
+                
+                // Internal state
+                this.rowCover = new Array(this.n).fill(false);
+                this.colCover = new Array(this.n).fill(false);
+                this.masks = Array.from({ length: this.n }, () => new Array(this.n).fill(0)); // 0: none, 1: starred, 2: primed
+                this.path = []; // For augmenting path
+            }
+
+            solve() {
+                this.subtractRowMins();
+                this.subtractColMins();
+                
+                // Star initial zeros
+                this.findInitialStars();
+                
+                let step = 2;
+                while (step !== 7) {
+                    switch (step) {
+                        case 2:
+                            step = this.coverStarredZeroCols();
+                            break;
+                        case 3:
+                            step = this.findUncoveredZero();
+                            break;
+                        case 4:
+                            step = this.handleAugmentingPath();
+                            break;
+                        case 5:
+                            step = this.adjustMatrix();
+                            break;
+                        case 6:
+                            // This step is integrated into 4 and 5 in this implementation
+                            break;
+                    }
+                }
+                
+                return this.findOptimalAssignments();
+            }
+
+            subtractRowMins() {
+                for (let i = 0; i < this.n; i++) {
+                    let min = Math.min(...this.matrix[i]);
+                    if (min > 0) {
+                        for (let j = 0; j < this.n; j++) {
+                            this.matrix[i][j] -= min;
+                        }
+                    }
+                }
+            }
+
+            subtractColMins() {
+                for (let j = 0; j < this.n; j++) {
+                    let min = Infinity;
+                    for (let i = 0; i < this.n; i++) {
+                        min = Math.min(min, this.matrix[i][j]);
+                    }
+                    if (min > 0) {
+                        for (let i = 0; i < this.n; i++) {
+                            this.matrix[i][j] -= min;
+                        }
+                    }
+                }
+            }
+
+            findInitialStars() {
+                let rowHasStar = new Array(this.n).fill(false);
+                let colHasStar = new Array(this.n).fill(false);
+                
+                for (let i = 0; i < this.n; i++) {
+                    for (let j = 0; j < this.n; j++) {
+                        if (this.matrix[i][j] === 0 && !rowHasStar[i] && !colHasStar[j]) {
+                            this.masks[i][j] = 1; // Star it
+                            rowHasStar[i] = true;
+                            colHasStar[j] = true;
+                        }
+                    }
+                }
+            }
+
+            coverStarredZeroCols() {
+                this.colCover.fill(false);
+                let starredCount = 0;
+                for (let i = 0; i < this.n; i++) {
+                    for (let j = 0; j < this.n; j++) {
+                        if (this.masks[i][j] === 1) {
+                            this.colCover[j] = true;
+                            starredCount++;
+                        }
+                    }
+                }
+                return starredCount === this.n ? 7 : 3; // Done or move to next step
+            }
+
+            findUncoveredZero() {
+                for (let i = 0; i < this.n; i++) {
+                    if (!this.rowCover[i]) {
+                        for (let j = 0; j < this.n; j++) {
+                            if (!this.colCover[j] && this.matrix[i][j] === 0) {
+                                this.masks[i][j] = 2; // Prime it
+                                
+                                // Check for a starred zero in this row
+                                let starCol = this.findStarInRow(i);
+                                if (starCol !== -1) {
+                                    this.rowCover[i] = true; // Cover row
+                                    this.colCover[starCol] = false; // Uncover col
+                                    return 3; // Go back to find new zero
+                                } else {
+                                    // No star in row, found augmenting path
+                                    this.path = [{ r: i, c: j }];
+                                    return 4; // Go to augmenting path step
+                                }
+                            }
+                        }
+                    }
+                }
+                return 5; // No uncovered zeros, adjust matrix
+            }
+
+            findStarInRow(row) {
+                for (let j = 0; j < this.n; j++) {
+                    if (this.masks[row][j] === 1) return j;
+                }
+                return -1;
+            }
+            
+            findStarInCol(col) {
+                 for(let i=0; i<this.n; i++) {
+                    if (this.masks[i][col] === 1) return i;
+                 }
+                 return -1;
+            }
+
+            findPrimeInRow(row) {
+                for(let j=0; j<this.n; j++) {
+                    if (this.masks[row][j] === 2) return j;
+                }
+                return -1;
+            }
+
+            handleAugmentingPath() {
+                let pathFound = false;
+                while (!pathFound) {
+                    let lastNode = this.path[this.path.length - 1];
+                    let starRow = this.findStarInCol(lastNode.c);
+                    
+                    if (starRow !== -1) {
+                        // Found a star, extend path
+                        this.path.push({ r: starRow, c: lastNode.c });
+                        
+                        // Find prime in this new row
+                        let primeCol = this.findPrimeInRow(starRow);
+                        this.path.push({ r: starRow, c: primeCol });
+                    } else {
+                        pathFound = true;
+                    }
+                }
+                
+                // Flip stars and primes along the path
+                for (const node of this.path) {
+                    if (this.masks[node.r][node.c] === 1) {
+                        this.masks[node.r][node.c] = 0; // Unstar
+                    } else {
+                        this.masks[node.r][node.c] = 1; // Star
+                    }
+                }
+                
+                // Clear all covers and primes
+                this.rowCover.fill(false);
+                this.colCover.fill(false);
+                for (let i = 0; i < this.n; i++) {
+                    for (let j = 0; j < this.n; j++) {
+                        if (this.masks[i][j] === 2) {
+                            this.masks[i][j] = 0;
+                        }
+                    }
+                }
+                
+                return 2; // Back to covering columns
+            }
+            
+            adjustMatrix() {
+                let min = Infinity;
+                for (let i = 0; i < this.n; i++) {
+                    if (!this.rowCover[i]) {
+                        for (let j = 0; j < this.n; j++) {
+                            if (!this.colCover[j]) {
+                                min = Math.min(min, this.matrix[i][j]);
+                            }
+                        }
+                    }
+                }
+
+                // Avoid Infinity if matrix is all covered
+                if (min === Infinity) min = 0;
+
+                for (let i = 0; i < this.n; i++) {
+                    for (let j = 0; j < this.n; j++) {
+                        if (this.rowCover[i]) {
+                            this.matrix[i][j] += min; // Add to covered rows
+                        }
+                        if (!this.colCover[j]) {
+                            this.matrix[i][j] -= min; // Subtract from uncovered cols
+                        }
+                    }
+                }
+                return 3; // Back to finding zeros
+            }
+
+            findOptimalAssignments() {
+                const assignments = [];
+                for (let i = 0; i < this.n; i++) {
+                    for (let j = 0; j < this.n; j++) {
+                        if (this.masks[i][j] === 1) {
+                            assignments.push([i, j]);
+                        }
+                    }
+                }
+                return assignments;
+            }
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', renderApp);
+    </script>
+</body>
+
+</html>
+
+
+
